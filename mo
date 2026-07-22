@@ -10,7 +10,7 @@ usage() {
   cat <<EOF
 ${C_BOLD}mo${C_RESET} — Mole for Ubuntu v$MOLE_VERSION
 
-${C_BOLD}Usage:${C_RESET} mo <command> [options]
+${C_BOLD}Usage:${C_RESET} mo [command] [options]     (bare ${C_BOLD}mo${C_RESET} opens the interactive menu)
 
 ${C_BOLD}Commands:${C_RESET}
   clean       Remove caches, logs and temporary files (user, system, snap, flatpak)
@@ -57,12 +57,16 @@ while (($#)); do
 done
 
 if [[ -z $CMD ]]; then
-  usage
-  exit 0
+  if [[ -t 0 && -t 1 ]]; then
+    CMD="menu"          # bare `mo` in a terminal opens the launcher
+  else
+    usage
+    exit 0
+  fi
 fi
 
 case "$CMD" in
-  clean|uninstall|optimize|analyze|status|purge|installer|update)
+  clean|uninstall|optimize|analyze|status|purge|installer|update|menu)
     # shellcheck disable=SC1090
     source "$MOLE_HOME/cmd/$CMD.sh"
     "run_$CMD" "${ARGS[@]}"
