@@ -27,6 +27,11 @@ run_update() {
     ok "already up to date (v$MOLE_VERSION)"
     return 0
   fi
+  # order-aware compare: highest of the two versions, per version-sort
+  if [[ $(printf '%s\n%s\n' "$MOLE_VERSION" "$remote" | sort -V | tail -1) == "$MOLE_VERSION" ]]; then
+    ok "local v$MOLE_VERSION is newer than published v$remote (dev checkout?) — nothing to do"
+    return 0
+  fi
   info "latest is ${C_BOLD}v$remote${C_RESET}"
 
   if (( check )); then
