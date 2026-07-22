@@ -54,6 +54,19 @@ mo status --once            # one snapshot instead of a live dashboard
   `~/.local/state/mole/operations.log`.
 - **Confirmations** — each category asks before deleting; `--yes` opts out.
 
+## Credits
+
+This project is a tribute to **[Mole](https://github.com/tw93/mole)** by
+**[Tw93](https://github.com/tw93)** — the excellent macOS system-maintenance CLI
+that defined the `mo` command set (clean / uninstall / optimize / analyze /
+status / purge / installer) and the philosophy this port follows: one small
+tool, visible before destructive, safe by default.
+
+Mole for Ubuntu is an independent clean-room reimplementation for Linux: it
+shares the original's command design and spirit but none of its code (the
+original is GPL-3.0; this codebase is written from scratch for Ubuntu and
+released under MIT). If you're on macOS, use the original — it's more mature.
+
 ## Layout
 
 ```
