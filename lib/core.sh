@@ -57,7 +57,9 @@ path_size() {
 confirm() {
   (( ASSUME_YES )) && return 0
   local reply
-  read -rp "  ${C_BOLD}$1${C_RESET} [y/N] " reply 2>/dev/null </dev/tty || return 1
+  # prompt via printf: `read -p` writes to stderr, so pairing it with 2>/dev/null hides it
+  printf '  %s [y/N] ' "${C_BOLD}$1${C_RESET}"
+  read -r reply 2>/dev/null </dev/tty || { printf '\n'; return 1; }
   [[ $reply == [yY]* ]]
 }
 

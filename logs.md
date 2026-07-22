@@ -8,6 +8,16 @@
 
 ## Entries
 
+- **2026-07-22 12:45 — main session (kimi-code CLI)**
+  - Did: Fixed invisible confirmation prompts (the "optimize/uninstall do nothing" bug). Replaced
+    `read -p "..." VAR 2>/dev/null </dev/tty` with `printf` for the prompt + `read -r VAR 2>/dev/null </dev/tty`
+    in `confirm()` and both interactive pickers. Corrected the PROGRESS.md note that had documented
+    the buggy pattern as a convention. Verified in a pty: prompts visible in `mo optimize`, the
+    `uninstall` numbered picker, and a direct `confirm` call (y → CONFIRMED); non-tty runs still
+    default safely to "no" with no error leak; `bash -n` clean on all three files.
+  - Changed: `lib/core.sh` (`confirm`), `cmd/uninstall.sh` (picker), `cmd/installer.sh` (same bug),
+    `PROGRESS.md` (Notes convention), `logs.md` (this entry).
+
 - **2026-07-22 11:53 — main session (kimi-code CLI)**
   - Did: Set up change tracking at user's request — created this `logs.md`, added a rule to `PROGRESS.md` requiring agents to log every change here.
   - Changed: `logs.md` (new), `PROGRESS.md` (rules section).

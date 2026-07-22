@@ -55,8 +55,10 @@ system commands through `run_root`/`run_user` (dry-run aware). Never call `rm`/`
   (only `cmd/purge.sh` sets it). Keep it that way.
 - (2026-07-22) Bar rendering must use `${BAR_FULL:0:n}`/`${BAR_EMPTY:0:n}` from core.sh — `tr` is
   byte-oriented and corrupts multi-byte block characters.
-- (2026-07-22) `read ... 2>/dev/null </dev/tty` — the stderr redirect must come BEFORE `</dev/tty`
-  or bash's open-failure message leaks in non-tty runs (redirections apply left to right).
+- (2026-07-22) Interactive prompts must be printed with `printf`, never `read -p ... 2>/dev/null`:
+  `read -p` writes the prompt to **stderr**, so the redirect hides it and every confirm looks like
+  the tool "does nothing". The non-tty guard is `read -r VAR 2>/dev/null </dev/tty` (stderr redirect
+  BEFORE `</dev/tty`, so bash's open-failure message is still suppressed in non-tty runs).
 - (2026-07-22) Smoke tests all passed on this box: version/help, `status --once` (CPU/mem/disk/net/top),
   `clean -n --user-only` (real caches listed, correct sizes), `purge -n` on a fixture tree
   (marker-file checks verified: `target` without `Cargo.toml` correctly skipped), `analyze --top 5`

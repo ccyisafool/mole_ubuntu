@@ -43,7 +43,8 @@ run_installer() {
     elif (( ASSUME_YES )); then
       selection="a"
     else
-      read -rp "  ${C_BOLD}Delete which? (numbers, 'a' for all, 'q' to skip)${C_RESET} " selection 2>/dev/null </dev/tty || selection="q"
+      printf '  %s ' "${C_BOLD}Delete which? (numbers, 'a' for all, 'q' to skip)${C_RESET}"
+      read -r selection 2>/dev/null </dev/tty || { printf '\n'; selection="q"; }
     fi
 
     if (( ! DRY_RUN )); then

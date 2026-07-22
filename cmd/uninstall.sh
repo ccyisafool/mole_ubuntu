@@ -84,7 +84,8 @@ run_uninstall() {
         "${C_DIM}$(cut -f3 <<<"${matches[$i]}")${C_RESET}"
     done
     local pick
-    read -rp "  ${C_BOLD}Which one? (number, q to cancel)${C_RESET} " pick 2>/dev/null </dev/tty || return 0
+    printf '  %s ' "${C_BOLD}Which one? (number, q to cancel)${C_RESET}"
+    read -r pick 2>/dev/null </dev/tty || { printf '\n'; return 0; }
     [[ $pick =~ ^[0-9]+$ ]] && (( pick >= 1 && pick <= ${#matches[@]} )) || { info "cancelled"; return 0; }
     chosen="${matches[$((pick - 1))]}"
   fi
