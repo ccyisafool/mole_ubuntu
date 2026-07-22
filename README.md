@@ -31,7 +31,7 @@ mo --help
 
 | Command        | What it does                                                                 |
 | -------------- | ---------------------------------------------------------------------------- |
-| `mo clean`     | Trash, thumbnails, browser caches, dev-tool caches, APT cache, journal, rotated logs, old snap revisions, flatpak caches & unused runtimes |
+| `mo clean`     | Trash, thumbnails, browser caches, dev-tool caches, APT cache, journal, rotated logs, old snap revisions & saved snapshots, flatpak caches & unused runtimes |
 | `mo uninstall` | Remove an app via apt / snap / flatpak, then hunt down leftover config, cache, autostart entries and systemd user units |
 | `mo optimize`  | `apt autoremove`/`autoclean`, journal trim, `fstrim`, `updatedb`, `mandb`, font & launcher caches |
 | `mo analyze`   | Interactive disk-usage explorer with size bars (drill down, go up)           |

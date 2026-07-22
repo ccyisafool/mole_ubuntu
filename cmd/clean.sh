@@ -100,6 +100,30 @@ run_clean() {
     else
       info "${C_DIM}no old snap revisions${C_RESET}"
     fi
+    # data snapshots snapd quietly keeps for 31 days after `snap remove`
+    local snaps_saved
+    snaps_saved=$(snap saved 2>/dev/null | tail -n +2)
+    if [[ -n $snaps_saved && $snaps_saved != *"No snapshots"* ]]; then
+      local sset sname sage sver srev ssize snotes sbytes
+      info "saved snapshots of removed snaps:"
+      while read -r sset sname sage sver srev ssize snotes; do
+        [[ $sset =~ ^[0-9]+$ ]] || continue
+        info "  #$sset  $sname  $ssize ${C_DIM}(age $sage)${C_RESET}"
+      done <<<"$snaps_saved"
+      if confirm_or_dry "Forget these snapshots? (snapd auto-deletes them after 31 days)"; then
+        while read -r sset sname sage sver srev ssize snotes; do
+          [[ $sset =~ ^[0-9]+$ ]] || continue
+          if run_root snap forget "$sset"; then
+            sbytes=$(awk -v s="$ssize" 'BEGIN{n=s+0; u=s; gsub(/[0-9.]/,"",u)
+              m=1; if(u=="KB")m=1024; else if(u=="MB")m=1024^2; else if(u=="GB")m=1024^3; else if(u=="TB")m=1024^4
+              printf "%d", n*m}')
+            TOTAL_FREED=$((TOTAL_FREED + sbytes))
+          fi
+        done <<<"$snaps_saved"
+      fi
+    else
+      info "${C_DIM}no saved snap snapshots${C_RESET}"
+    fi
     queue_reset
     local d
     for d in "$HOME"/snap/*/common/.cache; do
