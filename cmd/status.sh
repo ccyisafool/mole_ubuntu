@@ -80,15 +80,23 @@ _hottest_temp() {
 
 # ---- the mole ---------------------------------------------------------------
 
-_mole_art() { # frame(0|1) -> sets MOLE_L1..L3
-  if (( $1 == 0 )); then
+_mole_pose() { # anim-tick header-width -> sets MOLE_X, MOLE_L1..L3
+  local anim=$1 width=$2 w=14 range p dir step eyes
+  range=$(( width - w )); (( range < 1 )) && range=1
+  p=$(( anim % (2 * range) ))
+  dir=1
+  (( p >= range )) && { p=$(( 2 * range - p - 1 )); dir=0; }   # ping-pong walk
+  MOLE_X=$p
+  step=$(( anim % 2 ))
+  eyes="o o"; (( anim % 24 < 2 )) && eyes="- -"                # occasional blink
+  if (( dir )); then   # waddling right
+    MOLE_L1='     ___      '
+    MOLE_L2="  __($eyes)     "
+    if (( step )); then MOLE_L3='.~/(  mm )    '; else MOLE_L3=' ~\(  mm )    '; fi
+  else                 # waddling left
     MOLE_L1='      ___     '
-    MOLE_L2='   __(o o)    '
-    MOLE_L3='  ~\(  mm )   '
-  else
-    MOLE_L1='      ___     '
-    MOLE_L2='   __(- -)    '
-    MOLE_L3='  ~/(  mm )   '
+    MOLE_L2="     ($eyes)__  "
+    if (( step )); then MOLE_L3='    ( mm  )\~.'; else MOLE_L3='    ( mm  )/~ '; fi
   fi
 }
 
@@ -118,7 +126,7 @@ run_status() {
 
   local RX_HIST=() TX_HIST=()
   local CUR_TOT=() CUR_IDLE=() PRV_TOT=() PRV_IDLE=()
-  local prv_rx prv_tx prv_dr prv_dw tick=0 first=1 last_cols=0
+  local prv_rx prv_tx prv_dr prv_dw first=1 last_cols=0
 
   _sample_cpu; PRV_TOT=("${CUR_TOT[@]}"); PRV_IDLE=("${CUR_IDLE[@]}")
   read -r prv_rx prv_tx < <(_sample_net)
@@ -134,11 +142,24 @@ run_status() {
     printf '\e[?1049h\e[2J\e[?25l'
   fi
 
+  # two clocks: mole animates every subtick (~5 fps), data refreshes every interval
+  local subtick="0.2" data_every=$(( interval * 5 )) anim=0 header_w=$COLW key
+  (( data_every < 1 )) && data_every=5
+
   while true; do
-    if (( once )); then sleep 1; else
-      local key=""
-      read -rst "$interval" -n1 key </dev/tty 2>/dev/null
-      [[ $key == q ]] && break
+    if (( once )); then
+      sleep 1
+    elif (( anim % data_every != 0 )); then
+      # fast tick: redraw only the 3 mole lines (rows 2-4), leave the panels alone
+      _mole_pose "$anim" "$header_w"
+      printf '\e[2;1H%s\e[K\n%s\e[K\n%s\e[K' \
+        "$(printf '%*s' "$MOLE_X" '')${C_YELLOW}$MOLE_L1${C_RESET}" \
+        "$(printf '%*s' "$MOLE_X" '')${C_YELLOW}$MOLE_L2${C_RESET}" \
+        "$(printf '%*s' "$MOLE_X" '')${C_YELLOW}$MOLE_L3${C_RESET}"
+      key=""
+      read -rst "$subtick" -n1 key </dev/tty 2>/dev/null && [[ $key == q ]] && break
+      anim=$(( anim + 1 ))
+      continue
     fi
 
     # ---- deltas
@@ -286,10 +307,9 @@ run_status() {
     if (( ! once && ( first || cols != last_cols ) )); then printf '\e[2J'; fi
     last_cols=$cols
 
-    _mole_art $(( tick % 2 ))
-    local off=$(( tick % 12 )); (( off > 6 )) && off=$(( 12 - off ))
-    local mole_x=$(( (two_col ? COLW * 2 + 2 : COLW) - 16 - off * 3 ))
-    (( mole_x < 0 )) && mole_x=0
+    header_w=$(( two_col ? COLW * 2 + 2 : COLW ))
+    _mole_pose "$anim" "$header_w"
+    local mole_x=$MOLE_X
 
     local -a FL=()
     FL+=("${C_BOLD}${C_MAGENTA}Mole${C_RESET}  Health $dot ${C_BOLD}$score${C_RESET} $label  ${C_DIM}$host · $cpu_model · $(human_size $(( ram_total_kb * 1024 ))) RAM${gpu_name:+ · ${gpu_name#NVIDIA }}${C_RESET}")
@@ -314,7 +334,7 @@ run_status() {
       printf '%s\n' "${FL[@]}"
       break
     fi
-    FL+=("${C_DIM}live · every ${interval}s · q quits${C_RESET}")
+    FL+=("${C_DIM}live · data every ${interval}s · q quits${C_RESET}")
 
     # never print more lines than the window has, or every frame scrolls (= visible "refresh")
     local rows; rows=$(tput lines 2>/dev/null || echo 24)
@@ -323,7 +343,9 @@ run_status() {
     printf -v FRAME "%s$ERASE\n" "${FL[@]}"
     printf '\e[H%s\e[0J' "$FRAME"
     first=0
-    tick=$(( tick + 1 ))
+    key=""
+    read -rst "$subtick" -n1 key </dev/tty 2>/dev/null && [[ $key == q ]] && break
+    anim=$(( anim + 1 ))
   done
 
   if (( ! once )); then
