@@ -3,7 +3,7 @@
 # POSIX sh only: no arrays, no [[, works under BusyBox ash.
 # Commands: clean, analyze [path], status.  Flags: -n dry-run, -y yes.
 
-VERSION="0.4.2"
+VERSION="0.4.3"
 DRY=0
 YES=0
 
@@ -27,6 +27,7 @@ ${B}Usage:${R} mo-lite [-n] [-y] <command>
   clean            free space/RAM: opkg lists, LuCI caches, stray .ipk, rotated logs
   analyze [path]   biggest entries under a path (default /)
   status           one-shot system snapshot from /proc
+  update           replace this script with the latest from GitHub
   -n               dry run (print, delete nothing)
   -y               no confirmation prompts
 EOF
@@ -217,6 +218,43 @@ do_status() {
   return 0
 }
 
+do_update() {
+  url="https://raw.githubusercontent.com/ccyisafool/mole-for-ubuntu-and-friends/main/lite/mo-lite"
+  self=$(readlink -f "$0" 2>/dev/null || echo "$0")
+  tmp="/tmp/mo-lite.new.$$"
+  printf '%smo-lite update%s — installed v%s\n' "$B" "$R" "$VERSION"
+  if ! wget -q -O "$tmp" "$url" 2>/dev/null; then
+    rm -f "$tmp"
+    printf '  %s✗%s download failed (GitHub unreachable, or wget lacks HTTPS) — current install untouched\n' "$RED" "$R" >&2
+    exit 1
+  fi
+  # refuse anything that doesn't look like this script (captive portal, truncation)
+  if ! head -1 "$tmp" | grep -q '^#!/bin/sh' || [ "$(wc -c <"$tmp")" -lt 2000 ]; then
+    rm -f "$tmp"
+    printf '  %s✗%s downloaded file does not look like mo-lite — refusing to install\n' "$RED" "$R" >&2
+    exit 1
+  fi
+  new=$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$tmp" | head -1)
+  if [ "$new" = "$VERSION" ]; then
+    rm -f "$tmp"
+    printf '  %s✓%s already up to date (v%s)\n' "$GRN" "$R" "$VERSION"
+    exit 0
+  fi
+  if [ "$DRY" = 1 ]; then
+    rm -f "$tmp"
+    printf '  %s[dry-run]%s would replace %s: v%s -> v%s\n' "$D" "$R" "$self" "$VERSION" "${new:-?}"
+    exit 0
+  fi
+  chmod +x "$tmp"
+  if mv "$tmp" "$self" 2>/dev/null; then
+    printf '  %s✓%s updated %sv%s → v%s%s\n' "$GRN" "$R" "$B" "$VERSION" "${new:-?}" "$R"
+    exit 0
+  fi
+  rm -f "$tmp"
+  printf '  %s✗%s could not replace %s (not writable?)\n' "$RED" "$R" "$self" >&2
+  exit 1
+}
+
 CMD=""
 ARG=""
 for a in "$@"; do
@@ -232,5 +270,6 @@ case "$CMD" in
   clean)   do_clean ;;
   analyze) do_analyze "$ARG" ;;
   status)  do_status ;;
+  update)  do_update ;;
   *)       usage; exit 1 ;;
 esac

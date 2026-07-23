@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lib/core.sh — shared helpers: colors, logging, sizes, confirmations, safe removal
 
-MOLE_VERSION="0.4.2"
+MOLE_VERSION="0.4.3"
 
 DRY_RUN=${DRY_RUN:-0}
 ASSUME_YES=${ASSUME_YES:-0}

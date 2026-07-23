@@ -28,7 +28,9 @@ wget -O /usr/bin/mo-lite https://raw.githubusercontent.com/ccyisafool/mole-for-u
 ```
 
 (Needs HTTPS-capable wget — stock on modern OpenWrt/iStoreOS; minimal builds may
-need `opkg install libustream-openssl ca-bundle` first. Re-run the same line to update.)
+need `opkg install libustream-openssl ca-bundle` first.) Update later with
+`mo-lite update` — it downloads to a temp file, sanity-checks it, and replaces
+itself atomically; on failure the current install is untouched.
 
 If the router can't reach GitHub, push it over SSH from any machine with a clone —
 works even when the router has no scp/sftp installed:
