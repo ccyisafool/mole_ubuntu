@@ -24,19 +24,21 @@ Routers don't have bash, so `lite/mo-lite` is a self-contained POSIX-sh subset
 `analyze`, `status`. It's one file, so installing is one line — on the router:
 
 ```bash
-wget -O /usr/bin/mo-lite https://raw.githubusercontent.com/ccyisafool/mole-for-ubuntu-and-friends/main/lite/mo-lite && chmod +x /usr/bin/mo-lite
+wget -O /usr/bin/mo https://raw.githubusercontent.com/ccyisafool/mole-for-ubuntu-and-friends/main/lite/mo-lite && chmod +x /usr/bin/mo
 ```
 
 (Needs HTTPS-capable wget — stock on modern OpenWrt/iStoreOS; minimal builds may
-need `opkg install libustream-openssl ca-bundle` first.) Update later with
-`mo-lite update` — it downloads to a temp file, sanity-checks it, and replaces
-itself atomically; on failure the current install is untouched.
+need `opkg install libustream-openssl ca-bundle` first.) The script presents
+itself under whatever name you install it as — `mo` gives you the same muscle
+memory as the desktop version; bare `mo` shows the status dashboard. Update
+later with `mo update` — it downloads to a temp file, sanity-checks it, and
+replaces itself atomically; on failure the current install is untouched.
 
 If the router can't reach GitHub, push it over SSH from any machine with a clone —
 works even when the router has no scp/sftp installed:
 
 ```bash
-cat lite/mo-lite | ssh root@<router-ip> 'cat > /usr/bin/mo-lite && chmod +x /usr/bin/mo-lite'
+cat lite/mo-lite | ssh root@<router-ip> 'cat > /usr/bin/mo && chmod +x /usr/bin/mo'
 ```
 
 ![mo in action: launcher menu and live status dashboard](demo.gif)
