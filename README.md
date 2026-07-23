@@ -1,8 +1,31 @@
-# Mole for Ubuntu
+# Mole for Ubuntu (and friends)
 
-A terminal utility for Ubuntu inspired by [tw93/mole](https://github.com/tw93/mole) (macOS):
+A terminal utility for Linux inspired by [tw93/mole](https://github.com/tw93/mole) (macOS):
 system cleaning, app uninstalling, disk analysis and live monitoring in one `mo` command.
-Pure Bash — no dependencies beyond a stock Ubuntu install.
+Pure Bash — no dependencies beyond a stock install. Born on Ubuntu (hence the name),
+now speaking every major package family.
+
+## Supported systems
+
+| Family  | Distros                             | Package backend | Tested on                              |
+| ------- | ----------------------------------- | --------------- | -------------------------------------- |
+| deb     | Ubuntu, Debian, Mint, Pop!_OS, ...  | apt             | Ubuntu 26.04 (daily use), Debian 13 VM |
+| rpm     | Fedora, RHEL, Rocky, Alma, ...      | dnf             | Fedora 44 container                    |
+| arch    | Arch, Manjaro, EndeavourOS, ...     | pacman          | Arch container                         |
+| OpenWrt | OpenWrt, iStoreOS (routers/NAS)     | — (`mo-lite`)   | iStoreOS 24.10 VM                      |
+
+Snap and flatpak are handled wherever present. Systems without systemd skip the
+journal steps automatically.
+
+### mo-lite (OpenWrt-class devices)
+
+Routers don't have bash, so `lite/mo-lite` is a self-contained POSIX-sh subset
+(BusyBox-compatible): `clean` (opkg lists, LuCI caches, stray .ipk, rotated logs),
+`analyze`, `status`. Install by copying the single file:
+
+```bash
+scp lite/mo-lite root@router:/usr/bin/mo-lite
+```
 
 ![mo in action: launcher menu and live status dashboard](demo.gif)
 
